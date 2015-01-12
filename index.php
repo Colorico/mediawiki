@@ -34,13 +34,16 @@
 # has structures (try/catch, foo()->bar(), etc etc) which throw parse errors in
 # PHP 4. Setup.php and ObjectCache.php have structures invalid in PHP 5.0 and
 # 5.1, respectively.
-if ( !function_exists( 'version_compare' ) || version_compare( PHP_VERSION, '5.3.3' ) < 0 ) {
+
+namespace MediaWiki;
+
+if (!function_exists('version_compare') || version_compare(PHP_VERSION, '5.3.3') < 0) {
 	// We need to use dirname( __FILE__ ) here cause __DIR__ is PHP5.3+
-	require dirname( __FILE__ ) . '/includes/PHPVersionError.php';
+	require dirname(__FILE__) . '/src/PHPVersionError.php';
 	wfPHPVersionError( 'index.php' );
 }
 
-require __DIR__ . '/includes/WebStart.php';
+require __DIR__ . '/src/WebStart.php';
 
 $mediaWiki = new MediaWiki();
 $mediaWiki->run();

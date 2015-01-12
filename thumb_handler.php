@@ -21,6 +21,8 @@
  * @file
  * @ingroup Media
  */
+ 
+namespace MediaWiki;
 
 define( 'THUMB_HANDLER', true );
 

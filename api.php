@@ -29,62 +29,64 @@
  *
  * @file
  */
+ 
+namespace MediaWiki;
 
 // So extensions (and other code) can check whether they're running in API mode
-define( 'MW_API', true );
+define('MW_API', true);
 
 // Bail if PHP is too low
-if ( !function_exists( 'version_compare' ) || version_compare( PHP_VERSION, '5.3.3' ) < 0 ) {
+if (!function_exists( 'version_compare' ) || version_compare( PHP_VERSION, '5.3.3' ) < 0) {
 	// We need to use dirname( __FILE__ ) here cause __DIR__ is PHP5.3+
-	require dirname( __FILE__ ) . '/includes/PHPVersionError.php';
-	wfPHPVersionError( 'api.php' );
+	require dirname(__FILE__) . '/src/PHPVersionError.php';
+	wfPHPVersionError('api.php');
 }
 
-require __DIR__ . '/includes/WebStart.php';
+require __DIR__ . '/src/WebStart.php';
 
-$starttime = microtime( true );
+$starttime = microtime(true);
 
 // URL safety checks
-if ( !$wgRequest->checkUrlExtension() ) {
+if (!$wgRequest->checkUrlExtension()) {
 	return;
 }
 
 // Verify that the API has not been disabled
-if ( !$wgEnableAPI ) {
-	header( $_SERVER['SERVER_PROTOCOL'] . ' 500 MediaWiki configuration Error', true, 500 );
+if (!$wgEnableAPI) {
+	header($_SERVER['SERVER_PROTOCOL'] . ' 500 MediaWiki configuration Error', true, 500);
 	echo 'MediaWiki API is not enabled for this site. Add the following line to your LocalSettings.php'
 		. '<pre><b>$wgEnableAPI=true;</b></pre>';
-	die( 1 );
+	die(1);
 }
 
 // Set a dummy $wgTitle, because $wgTitle == null breaks various things
 // In a perfect world this wouldn't be necessary
-$wgTitle = Title::makeTitle( NS_MAIN, 'API' );
+$wgTitle = Title::makeTitle(NS_MAIN, 'API');
 
 try {
 	/* Construct an ApiMain with the arguments passed via the URL. What we get back
 	 * is some form of an ApiMain, possibly even one that produces an error message,
 	 * but we don't care here, as that is handled by the ctor.
 	 */
-	$processor = new ApiMain( RequestContext::getMain(), $wgEnableWriteAPI );
+	$processor = new ApiMain(RequestContext::getMain(), $wgEnableWriteAPI);
 
 	// Last chance hook before executing the API
-	wfRunHooks( 'ApiBeforeMain', array( &$processor ) );
-	if ( !$processor instanceof ApiMain ) {
-		throw new MWException( 'ApiBeforeMain hook set $processor to a non-ApiMain class' );
+	wfRunHooks('ApiBeforeMain', [&$processor]);
+	if (!$processor instanceof ApiMain) {
+		throw new MWException('ApiBeforeMain hook set $processor to a non-ApiMain class');
 	}
-} catch ( Exception $e ) {
+} catch (Exception $e) {
 	// Crap. Try to report the exception in API format to be friendly to clients.
-	ApiMain::handleApiBeforeMainException( $e );
+	ApiMain::handleApiBeforeMainException($e);
 	$processor = false;
 }
 
 // Process data & print results
-if ( $processor ) {
+if ($processor) {
 	$processor->execute();
 }
 
-if ( function_exists( 'fastcgi_finish_request' ) ) {
+if (function_exists('fastcgi_finish_request')) {
 	fastcgi_finish_request();
 }
 
@@ -92,36 +94,36 @@ if ( function_exists( 'fastcgi_finish_request' ) ) {
 DeferredUpdates::doUpdates();
 
 // Log what the user did, for book-keeping purposes.
-$endtime = microtime( true );
+$endtime = microtime(true);
 
 wfLogProfilingData();
 
 // Log the request
-if ( $wgAPIRequestLog ) {
-	$items = array(
-		wfTimestamp( TS_MW ),
+if ($wgAPIRequestLog) {
+	$items = [
+		wfTimestamp(TS_MW),
 		$endtime - $starttime,
 		$wgRequest->getIP(),
-		$wgRequest->getHeader( 'User-agent' )
-	);
+		$wgRequest->getHeader('User-agent')
+	];
 	$items[] = $wgRequest->wasPosted() ? 'POST' : 'GET';
-	if ( $processor ) {
+	if ($processor) {
 		try {
 			$manager = $processor->getModuleManager();
-			$module = $manager->getModule( $wgRequest->getVal( 'action' ), 'action' );
-		} catch ( Exception $ex ) {
+			$module = $manager->getModule($wgRequest->getVal('action'), 'action');
+		} catch (Exception $ex) {
 			$module = null;
 		}
-		if ( !$module || $module->mustBePosted() ) {
-			$items[] = "action=" . $wgRequest->getVal( 'action' );
+		if (!$module || $module->mustBePosted()) {
+			$items[] = "action=" . $wgRequest->getVal('action');
 		} else {
-			$items[] = wfArrayToCgi( $wgRequest->getValues() );
+			$items[] = wfArrayToCgi($wgRequest->getValues());
 		}
 	} else {
 		$items[] = "failed in ApiBeforeMain";
 	}
-	MWLoggerLegacyLogger::emit( implode( ',', $items ) . "\n", $wgAPIRequestLog );
-	wfDebug( "Logged API request to $wgAPIRequestLog\n" );
+	MWLoggerLegacyLogger::emit(implode(',', $items) . "\n", $wgAPIRequestLog);
+	wfDebug("Logged API request to $wgAPIRequestLog\n");
 }
 
 // Shut down the database.  foo()->bar() syntax is not supported in PHP4: we won't ever actually

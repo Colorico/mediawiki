@@ -22,26 +22,28 @@
  * @author Trevor Parscal
  */
 
+namespace MediaWiki;
+
 // Bail if PHP is too low
-if ( !function_exists( 'version_compare' ) || version_compare( PHP_VERSION, '5.3.3' ) < 0 ) {
+if (!function_exists('version_compare') || version_compare(PHP_VERSION, '5.3.3') < 0) {
 	// We need to use dirname( __FILE__ ) here cause __DIR__ is PHP5.3+
-	require dirname( __FILE__ ) . '/includes/PHPVersionError.php';
-	wfPHPVersionError( 'load.php' );
+	require dirname(__FILE__) . '/src/PHPVersionError.php';
+	wfPHPVersionError('load.php');
 }
 
-require __DIR__ . '/includes/WebStart.php';
+require __DIR__ . '/src/WebStart.php';
 
 
 // URL safety checks
-if ( !$wgRequest->checkUrlExtension() ) {
+if (!$wgRequest->checkUrlExtension()) {
 	return;
 }
 
 // Respond to resource loading request.
 // foo()->bar() syntax is not supported in PHP4, and this file needs to *parse* in PHP4.
 $configFactory = ConfigFactory::getDefaultInstance();
-$resourceLoader = new ResourceLoader( $configFactory->makeConfig( 'main' ) );
-$resourceLoader->respond( new ResourceLoaderContext( $resourceLoader, $wgRequest ) );
+$resourceLoader = new ResourceLoader( $configFactory->makeConfig('main'));
+$resourceLoader->respond( new ResourceLoaderContext($resourceLoader, $wgRequest));
 
 wfLogProfilingData();
 

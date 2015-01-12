@@ -37,13 +37,15 @@
  * @file
  */
 
-define( 'MW_NO_OUTPUT_COMPRESSION', 1 );
-require __DIR__ . '/includes/WebStart.php';
+namespace MediaWiki;
+
+define('MW_NO_OUTPUT_COMPRESSION', 1);
+require __DIR__ . '/src/WebStart.php';
 
 # Set action base paths so that WebRequest::getPathInfo()
 # recognizes the "X" as the 'title' in ../img_auth.php/X urls.
 $wgArticlePath = false; # Don't let a "/*" article path clober our action path
-$wgActionPaths = array( "$wgUploadPath/" );
+$wgActionPaths = ["$wgUploadPath/"];
 
 wfImageAuthMain();
 wfLogProfilingData();
@@ -56,121 +58,120 @@ function wfImageAuthMain() {
 	global $wgImgAuthUrlPathMap;
 
 	$request = RequestContext::getMain()->getRequest();
-	$publicWiki = in_array( 'read', User::getGroupPermissions( array( '*' ) ), true );
+	$publicWiki = in_array('read', User::getGroupPermissions(['*']), true);
 
 	// Get the requested file path (source file or thumbnail)
 	$matches = WebRequest::getPathInfo();
-	if ( !isset( $matches['title'] ) ) {
-		wfForbidden( 'img-auth-accessdenied', 'img-auth-nopathinfo' );
+	if (!isset($matches['title'])) {
+		wfForbidden('img-auth-accessdenied', 'img-auth-nopathinfo');
 		return;
 	}
 	$path = $matches['title'];
-	if ( $path && $path[0] !== '/' ) {
+	if ($path && $path[0] !== '/') {
 		// Make sure $path has a leading /
 		$path = "/" . $path;
 	}
 
 	// Check for bug 28235: QUERY_STRING overriding the correct extension
-	$whitelist = array();
-	$extension = FileBackend::extensionFromPath( $path, 'rawcase' );
-	if ( $extension != '' ) {
+	$whitelist = [];
+	$extension = FileBackend::extensionFromPath($path, 'rawcase');
+	if ($extension != '') {
 		$whitelist[] = $extension;
 	}
-	if ( !$request->checkUrlExtension( $whitelist ) ) {
+	if (!$request->checkUrlExtension($whitelist)) {
 		return;
 	}
 
 	// Various extensions may have their own backends that need access.
 	// Check if there is a special backend and storage base path for this file.
-	foreach ( $wgImgAuthUrlPathMap as $prefix => $storageDir ) {
-		$prefix = rtrim( $prefix, '/' ) . '/'; // implicit trailing slash
-		if ( strpos( $path, $prefix ) === 0 ) {
-			$be = FileBackendGroup::singleton()->backendFromPath( $storageDir );
-			$filename = $storageDir . substr( $path, strlen( $prefix ) ); // strip prefix
+	foreach ($wgImgAuthUrlPathMap as $prefix => $storageDir) {
+		$prefix = rtrim($prefix, '/') . '/'; // implicit trailing slash
+		if (strpos($path, $prefix) === 0) {
+			$be = FileBackendGroup::singleton()->backendFromPath($storageDir);
+			$filename = $storageDir . substr($path, strlen($prefix)); // strip prefix
 			// Check basic user authorization
-			if ( !RequestContext::getMain()->getUser()->isAllowed( 'read' ) ) {
-				wfForbidden( 'img-auth-accessdenied', 'img-auth-noread', $path );
+			if (!RequestContext::getMain()->getUser()->isAllowed('read')) {
+				wfForbidden('img-auth-accessdenied', 'img-auth-noread', $path);
 				return;
 			}
-			if ( $be->fileExists( array( 'src' => $filename ) ) ) {
-				wfDebugLog( 'img_auth', "Streaming `" . $filename . "`." );
-				$be->streamFile( array( 'src' => $filename ),
-					array( 'Cache-Control: private', 'Vary: Cookie' ) );
+			if ($be->fileExists(['src' => $filename])) {
+				wfDebugLog('img_auth',"Streaming `" . $filename . "`.");
+				$be->streamFile(['src' => $filename], ['Cache-Control: private', 'Vary: Cookie']);
 			} else {
-				wfForbidden( 'img-auth-accessdenied', 'img-auth-nofile', $path );
+				wfForbidden('img-auth-accessdenied', 'img-auth-nofile', $path);
 			}
 			return;
 		}
 	}
 
 	// Get the local file repository
-	$repo = RepoGroup::singleton()->getRepo( 'local' );
-	$zone = strstr( ltrim( $path, '/' ), '/', true );
+	$repo = RepoGroup::singleton()->getRepo('local');
+	$zone = strstr(ltrim($path, '/'), '/', true);
 
 	// Get the full file storage path and extract the source file name.
 	// (e.g. 120px-Foo.png => Foo.png or page2-120px-Foo.png => Foo.png).
 	// This only applies to thumbnails/transcoded, and each of them should
 	// be under a folder that has the source file name.
-	if ( $zone === 'thumb' || $zone === 'transcoded' ) {
-		$name = wfBaseName( dirname( $path ) );
-		$filename = $repo->getZonePath( $zone ) . substr( $path, strlen( "/" . $zone ) );
+	if ($zone === 'thumb' || $zone === 'transcoded') {
+		$name = wfBaseName(dirname($path));
+		$filename = $repo->getZonePath($zone) . substr($path, strlen( "/" . $zone));
 		// Check to see if the file exists
-		if ( !$repo->fileExists( $filename ) ) {
-			wfForbidden( 'img-auth-accessdenied', 'img-auth-nofile', $filename );
+		if (!$repo->fileExists($filename)) {
+			wfForbidden('img-auth-accessdenied', 'img-auth-nofile', $filename);
 			return;
 		}
 	} else {
-		$name = wfBaseName( $path ); // file is a source file
-		$filename = $repo->getZonePath( 'public' ) . $path;
+		$name = wfBaseName($path); // file is a source file
+		$filename = $repo->getZonePath('public') . $path;
 		// Check to see if the file exists and is not deleted
-		$bits = explode( '!', $name, 2 );
-		if ( substr( $path, 0, 9 ) === '/archive/' && count( $bits ) == 2 ) {
-			$file = $repo->newFromArchiveName( $bits[1], $name );
+		$bits = explode('!', $name, 2);
+		if (substr($path, 0, 9) === '/archive/' && count($bits) == 2) {
+			$file = $repo->newFromArchiveName($bits[1], $name);
 		} else {
-			$file = $repo->newFile( $name );
+			$file = $repo->newFile($name);
 		}
-		if ( !$file->exists() || $file->isDeleted( File::DELETED_FILE ) ) {
-			wfForbidden( 'img-auth-accessdenied', 'img-auth-nofile', $filename );
+		if (!$file->exists() || $file->isDeleted(File::DELETED_FILE)) {
+			wfForbidden('img-auth-accessdenied', 'img-auth-nofile', $filename);
 			return;
 		}
 	}
 
-	$headers = array(); // extra HTTP headers to send
+	$headers = []; // extra HTTP headers to send
 
-	if ( !$publicWiki ) {
+	if (!$publicWiki) {
 		// For private wikis, run extra auth checks and set cache control headers
 		$headers[] = 'Cache-Control: private';
 		$headers[] = 'Vary: Cookie';
 
-		$title = Title::makeTitleSafe( NS_FILE, $name );
-		if ( !$title instanceof Title ) { // files have valid titles
-			wfForbidden( 'img-auth-accessdenied', 'img-auth-badtitle', $name );
+		$title = Title::makeTitleSafe(NS_FILE, $name);
+		if (!$title instanceof Title) { // files have valid titles
+			wfForbidden('img-auth-accessdenied', 'img-auth-badtitle', $name);
 			return;
 		}
 
 		// Run hook for extension authorization plugins
 		/** @var $result array */
 		$result = null;
-		if ( !wfRunHooks( 'ImgAuthBeforeStream', array( &$title, &$path, &$name, &$result ) ) ) {
-			wfForbidden( $result[0], $result[1], array_slice( $result, 2 ) );
+		if (!wfRunHooks('ImgAuthBeforeStream', [&$title, &$path, &$name, &$result])) {
+			wfForbidden($result[0], $result[1], array_slice($result, 2));
 			return;
 		}
 
 		// Check user authorization for this title
 		// Checks Whitelist too
-		if ( !$title->userCan( 'read' ) ) {
-			wfForbidden( 'img-auth-accessdenied', 'img-auth-noread', $name );
+		if (!$title->userCan('read')) {
+			wfForbidden('img-auth-accessdenied', 'img-auth-noread', $name);
 			return;
 		}
 	}
 
-	if ( $request->getCheck( 'download' ) ) {
+	if ($request->getCheck('download')) {
 		$headers[] = 'Content-Disposition: attachment';
 	}
 
 	// Stream the requested file
-	wfDebugLog( 'img_auth', "Streaming `" . $filename . "`." );
-	$repo->streamFile( $filename, $headers );
+	wfDebugLog('img_auth', "Streaming `" . $filename . "`.");
+	$repo->streamFile($filename, $headers);
 }
 
 /**
@@ -180,26 +181,26 @@ function wfImageAuthMain() {
  * @param string $msg1
  * @param string $msg2
  */
-function wfForbidden( $msg1, $msg2 ) {
+function wfForbidden($msg1, $msg2) {
 	global $wgImgAuthDetails;
 
 	$args = func_get_args();
-	array_shift( $args );
-	array_shift( $args );
-	$args = ( isset( $args[0] ) && is_array( $args[0] ) ) ? $args[0] : $args;
+	array_shift($args);
+	array_shift($args);
+	$args = (isset($args[0]) && is_array($args[0])) ? $args[0] : $args;
 
-	$msgHdr = wfMessage( $msg1 )->escaped();
+	$msgHdr = wfMessage($msg1)->escaped();
 	$detailMsgKey = $wgImgAuthDetails ? $msg2 : 'badaccess-group0';
-	$detailMsg = wfMessage( $detailMsgKey, $args )->escaped();
+	$detailMsg = wfMessage($detailMsgKey, $args)->escaped();
 
-	wfDebugLog( 'img_auth',
-		"wfForbidden Hdr: " . wfMessage( $msg1 )->inLanguage( 'en' )->text() . " Msg: " .
-			wfMessage( $msg2, $args )->inLanguage( 'en' )->text()
+	wfDebugLog('img_auth',
+				"wfForbidden Hdr: " . wfMessage( $msg1 )->inLanguage( 'en' )->text() . " Msg: " 
+				. wfMessage($msg2, $args)->inLanguage('en')->text()
 	);
 
-	header( 'HTTP/1.0 403 Forbidden' );
-	header( 'Cache-Control: no-cache' );
-	header( 'Content-Type: text/html; charset=utf-8' );
+	header('HTTP/1.0 403 Forbidden');
+	header('Cache-Control: no-cache');
+	header('Content-Type: text/html; charset=utf-8');
 	echo <<<ENDS
 <html>
 <body>
