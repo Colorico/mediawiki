@@ -23,6 +23,8 @@
  * @file
  */
 
+namespace MediaWiki\src;
+
 /**
  * Authentication plugin interface. Instantiate a subclass of AuthPlugin
  * and set $wgAuth to it to authenticate against some external tool.
@@ -48,7 +50,7 @@ class AuthPlugin {
 	 * @param string $username Username.
 	 * @return bool
 	 */
-	public function userExists( $username ) {
+	public function userExists($username) {
 		# Override this!
 		return false;
 	}
@@ -63,7 +65,7 @@ class AuthPlugin {
 	 * @param string $password User password.
 	 * @return bool
 	 */
-	public function authenticate( $username, $password ) {
+	public function authenticate($username, $password) {
 		# Override this!
 		return false;
 	}
@@ -74,9 +76,9 @@ class AuthPlugin {
 	 * @param UserLoginTemplate $template
 	 * @param string $type 'signup' or 'login'. Added in 1.16.
 	 */
-	public function modifyUITemplate( &$template, &$type ) {
+	public function modifyUITemplate(&$template, &$type) {
 		# Override this!
-		$template->set( 'usedomain', false );
+		$template->set('usedomain', false);
 	}
 
 	/**
@@ -84,7 +86,7 @@ class AuthPlugin {
 	 *
 	 * @param string $domain Authentication domain.
 	 */
-	public function setDomain( $domain ) {
+	public function setDomain($domain) {
 		$this->domain = $domain;
 	}
 
@@ -94,7 +96,7 @@ class AuthPlugin {
 	 * @return string
 	 */
 	public function getDomain() {
-		if ( isset( $this->domain ) ) {
+		if (isset($this->domain)) {
 			return $this->domain;
 		} else {
 			return 'invaliddomain';
@@ -107,7 +109,7 @@ class AuthPlugin {
 	 * @param string $domain Authentication domain.
 	 * @return bool
 	 */
-	public function validDomain( $domain ) {
+	public function validDomain($domain) {
 		# Override this!
 		return true;
 	}
@@ -123,7 +125,7 @@ class AuthPlugin {
 	 * @param User $user
 	 * @return bool
 	 */
-	public function updateUser( &$user ) {
+	public function updateUser(&$user) {
 		# Override this and do something
 		return true;
 	}
@@ -154,12 +156,12 @@ class AuthPlugin {
 	 *
 	 * @return bool
 	 */
-	public function allowPropChange( $prop = '' ) {
-		if ( $prop == 'realname' && is_callable( array( $this, 'allowRealNameChange' ) ) ) {
+	public function allowPropChange($prop = '') {
+		if ($prop == 'realname' && is_callable([$this, 'allowRealNameChange'])) {
 			return $this->allowRealNameChange();
-		} elseif ( $prop == 'emailaddress' && is_callable( array( $this, 'allowEmailChange' ) ) ) {
+		} elseif ($prop == 'emailaddress' && is_callable([$this, 'allowEmailChange'])) {
 			return $this->allowEmailChange();
-		} elseif ( $prop == 'nickname' && is_callable( array( $this, 'allowNickChange' ) ) ) {
+		} elseif ($prop == 'nickname' && is_callable([$this, 'allowNickChange'])) {
 			return $this->allowNickChange();
 		} else {
 			return true;
@@ -196,7 +198,7 @@ class AuthPlugin {
 	 * @param string $password Password.
 	 * @return bool
 	 */
-	public function setPassword( $user, $password ) {
+	public function setPassword($user, $password) {
 		return true;
 	}
 
@@ -207,7 +209,7 @@ class AuthPlugin {
 	 * @param User $user
 	 * @return bool
 	 */
-	public function updateExternalDB( $user ) {
+	public function updateExternalDB($user) {
 		return true;
 	}
 
@@ -220,7 +222,7 @@ class AuthPlugin {
 	 * @param array $delgroups Groups to remove.
 	 * @return bool
 	 */
-	public function updateExternalDBGroups( $user, $addgroups, $delgroups = array() ) {
+	public function updateExternalDBGroups($user, $addgroups, $delgroups = []) {
 		return true;
 	}
 
@@ -243,7 +245,7 @@ class AuthPlugin {
 	 * @param string $realname
 	 * @return bool
 	 */
-	public function addUser( $user, $password, $email = '', $realname = '' ) {
+	public function addUser($user, $password, $email = '', $realname = '') {
 		return true;
 	}
 
@@ -266,7 +268,7 @@ class AuthPlugin {
 	 * @param string $username Username.
 	 * @return bool
 	 */
-	public function strictUserAuth( $username ) {
+	public function strictUserAuth($username) {
 		return false;
 	}
 
@@ -281,7 +283,7 @@ class AuthPlugin {
 	 * @param User $user
 	 * @param bool $autocreate True if user is being autocreated on login
 	 */
-	public function initUser( &$user, $autocreate = false ) {
+	public function initUser(&$user, $autocreate = false) {
 		# Override this to do something.
 	}
 
@@ -291,7 +293,7 @@ class AuthPlugin {
 	 * @param string $username
 	 * @return string
 	 */
-	public function getCanonicalName( $username ) {
+	public function getCanonicalName($username) {
 		return $username;
 	}
 
@@ -302,8 +304,8 @@ class AuthPlugin {
 	 *
 	 * @return AuthPluginUser
 	 */
-	public function getUserInstance( User &$user ) {
-		return new AuthPluginUser( $user );
+	public function getUserInstance(User &$user) {
+		return new AuthPluginUser($user);
 	}
 
 	/**
@@ -312,14 +314,12 @@ class AuthPlugin {
 	 * @return array
 	 */
 	public function domainList() {
-		return array();
+		return [];
 	}
 }
 
 class AuthPluginUser {
-	function __construct( $user ) {
-		# Override this!
-	}
+	public function AuthPluginUser($user) { }
 
 	public function getId() {
 		# Override this!

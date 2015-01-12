@@ -21,6 +21,8 @@
  * @ingroup Ajax
  */
 
+namespace MediaWiki\src;
+
 /**
  * @defgroup Ajax Ajax
  */
@@ -55,34 +57,34 @@ class AjaxDispatcher {
 	/**
 	 * Load up our object with user supplied data
 	 */
-	function __construct( Config $config ) {
+	public function AjaxDispatcher(Config $config) {
 		$this->config = $config;
 
 		$this->mode = "";
 
-		if ( !empty( $_GET["rs"] ) ) {
+		if (!empty($_GET["rs"])) {
 			$this->mode = "get";
 		}
 
-		if ( !empty( $_POST["rs"] ) ) {
+		if (!empty( $_POST["rs"])) {
 			$this->mode = "post";
 		}
 
-		switch ( $this->mode ) {
+		switch ($this->mode) {
 			case 'get':
-				$this->func_name = isset( $_GET["rs"] ) ? $_GET["rs"] : '';
-				if ( !empty( $_GET["rsargs"] ) ) {
+				$this->func_name = isset($_GET["rs"]) ? $_GET["rs"] : '';
+				if (!empty($_GET["rsargs"])) {
 					$this->args = $_GET["rsargs"];
 				} else {
-					$this->args = array();
+					$this->args = [];
 				}
 				break;
 			case 'post':
 				$this->func_name = isset( $_POST["rs"] ) ? $_POST["rs"] : '';
-				if ( !empty( $_POST["rsargs"] ) ) {
+				if (!empty($_POST["rsargs"])) {
 					$this->args = $_POST["rsargs"];
 				} else {
-					$this->args = array();
+					$this->args = [];
 				}
 				break;
 			default:
@@ -101,58 +103,46 @@ class AjaxDispatcher {
 	 *
 	 * @param User $user
 	 */
-	function performAction( User $user ) {
-		if ( empty( $this->mode ) ) {
+	function performAction(User $user) {
+		if (empty($this->mode)) {
 			return;
 		}
 
-		if ( !in_array( $this->func_name, $this->config->get( 'AjaxExportList' ) ) ) {
-			wfDebug( __METHOD__ . ' Bad Request for unknown function ' . $this->func_name . "\n" );
-			wfHttpError(
-				400,
-				'Bad Request',
-				"unknown function " . $this->func_name
-			);
-		} elseif ( !User::isEveryoneAllowed( 'read' ) && !$user->isAllowed( 'read' ) ) {
-			wfHttpError(
-				403,
-				'Forbidden',
-				'You are not allowed to view pages.' );
+		if (!in_array($this->func_name, $this->config->get('AjaxExportList'))) {
+			wfDebug(__METHOD__ . ' Bad Request for unknown function ' . $this->func_name . "\n");
+			wfHttpError(400, 'Bad Request', "unknown function " . $this->func_name);
+		} elseif (!User::isEveryoneAllowed('read') && !$user->isAllowed('read')) {
+			wfHttpError(403, 'Forbidden', 'You are not allowed to view pages.' );
 		} else {
-			wfDebug( __METHOD__ . ' dispatching ' . $this->func_name . "\n" );
+			wfDebug(__METHOD__ . ' dispatching ' . $this->func_name . "\n");
 			try {
-				$result = call_user_func_array( $this->func_name, $this->args );
+				$result = call_user_func_array($this->func_name, $this->args);
 
-				if ( $result === false || $result === null ) {
-					wfDebug( __METHOD__ . ' ERROR while dispatching '
-							. $this->func_name . "(" . var_export( $this->args, true ) . "): "
-							. "no data returned\n" );
+				if ($result === false || $result === null) {
+					wfDebug( __METHOD__ . ' ERROR while dispatching ' . $this->func_name . "(" . var_export( $this->args, true ) 
+						. "): no data returned\n");
 
-					wfHttpError( 500, 'Internal Error',
-						"{$this->func_name} returned no data" );
+					wfHttpError( 500, 'Internal Error', "{$this->func_name} returned no data" );
 				} else {
-					if ( is_string( $result ) ) {
-						$result = new AjaxResponse( $result );
+					if (is_string($result)) {
+						$result = new AjaxResponse($result);
 					}
 
 					$result->sendHeaders();
 					$result->printText();
 
-					wfDebug( __METHOD__ . ' dispatch complete for ' . $this->func_name . "\n" );
+					wfDebug(__METHOD__ . ' dispatch complete for ' . $this->func_name . "\n");
 				}
-			} catch ( Exception $e ) {
-				wfDebug( __METHOD__ . ' ERROR while dispatching '
-						. $this->func_name . "(" . var_export( $this->args, true ) . "): "
-						. get_class( $e ) . ": " . $e->getMessage() . "\n" );
+			} catch (Exception $e) {
+				wfDebug( __METHOD__ . ' ERROR while dispatching ' . $this->func_name . "(" . var_export($this->args, true) . "): " 
+						. get_class($e) . ": " . $e->getMessage() . "\n");
 
-				if ( !headers_sent() ) {
-					wfHttpError( 500, 'Internal Error',
-						$e->getMessage() );
+				if (!headers_sent()) {
+					wfHttpError(500, 'Internal Error', $e->getMessage());
 				} else {
 					print $e->getMessage();
 				}
 			}
 		}
-
 	}
 }
