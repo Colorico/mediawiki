@@ -34,7 +34,7 @@ interface Config {
 	 * @return mixed Value configured
 	 * @throws ConfigException
 	 */
-	public function get( $name );
+	public function get($name);
 
 	/**
 	 * Check whether a configuration option is set for the given name
@@ -43,5 +43,6 @@ interface Config {
 	 * @return bool
 	 * @since 1.24
 	 */
-	public function has( $name );
+	public function has($name);
+
 }

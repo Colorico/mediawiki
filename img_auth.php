@@ -55,6 +55,7 @@ $factory->commitMasterChanges();
 $factory->shutdown();
 
 function wfImageAuthMain() {
+	// TODO php56 NO GLOBAL VARIABLE
 	global $wgImgAuthUrlPathMap;
 
 	$request = RequestContext::getMain()->getRequest();
@@ -181,7 +182,7 @@ function wfImageAuthMain() {
  * @param string $msg1
  * @param string $msg2
  */
-function wfForbidden($msg1, $msg2) {
+function wfForbidden($_msg1, $_msg2) {
 	global $wgImgAuthDetails;
 
 	$args = func_get_args();
@@ -189,13 +190,12 @@ function wfForbidden($msg1, $msg2) {
 	array_shift($args);
 	$args = (isset($args[0]) && is_array($args[0])) ? $args[0] : $args;
 
-	$msgHdr = wfMessage($msg1)->escaped();
-	$detailMsgKey = $wgImgAuthDetails ? $msg2 : 'badaccess-group0';
+	$msgHdr = wfMessage($_msg1)->escaped();
+	$detailMsgKey = $wgImgAuthDetails ? $_msg2 : 'badaccess-group0';
 	$detailMsg = wfMessage($detailMsgKey, $args)->escaped();
 
 	wfDebugLog('img_auth',
-				"wfForbidden Hdr: " . wfMessage( $msg1 )->inLanguage( 'en' )->text() . " Msg: " 
-				. wfMessage($msg2, $args)->inLanguage('en')->text()
+		"wfForbidden Hdr: " . wfMessage($_msg1)->inLanguage('en')->text() . " Msg: " . wfMessage($_msg2, $args)->inLanguage('en')->text()
 	);
 
 	header('HTTP/1.0 403 Forbidden');

@@ -41,25 +41,26 @@ class GlobalVarConfig implements Config {
 		return new GlobalVarConfig();
 	}
 
-	public function __construct( $prefix = 'wg' ) {
-		$this->prefix = $prefix;
+	public function GlobalVarConfig($_prefix = 'wg') {
+		$this->prefix = $_prefix;
 	}
 
 	/**
 	 * @see Config::get
 	 */
-	public function get( $name ) {
-		if ( !$this->has( $name ) ) {
-			throw new ConfigException( __METHOD__ . ": undefined option: '$name'" );
+	public function get($_name) {
+		if (!$this->has($_name)) {
+			throw new ConfigException(__METHOD__ . ": undefined option: '$_name'");
 		}
-		return $this->getWithPrefix( $this->prefix, $name );
+		
+		return $this->getWithPrefix($this->prefix, $_name);
 	}
 
 	/**
 	 * @see Config::has
 	 */
-	public function has( $name ) {
-		return $this->hasWithPrefix( $this->prefix, $name );
+	public function has($_name) {
+		return $this->hasWithPrefix($this->prefix, $_name);
 	}
 
 	/**
@@ -69,8 +70,8 @@ class GlobalVarConfig implements Config {
 	 * @param string $name Variable name without prefix
 	 * @return mixed
 	 */
-	protected function getWithPrefix( $prefix, $name ) {
-		return $GLOBALS[$prefix . $name];
+	protected function getWithPrefix($_prefix, $_name) {
+		return $GLOBALS[$_prefix . $_name];
 	}
 
 	/**
@@ -80,8 +81,8 @@ class GlobalVarConfig implements Config {
 	 * @param string $name Variable name without prefix
 	 * @return bool
 	 */
-	protected function hasWithPrefix( $prefix, $name ) {
-		$var = $prefix . $name;
-		return array_key_exists( $var, $GLOBALS );
+	protected function hasWithPrefix($_prefix, $_name) {
+		$var = $_prefix . $_name;
+		return array_key_exists($var, $GLOBALS);
 	}
 }

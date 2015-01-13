@@ -27,6 +27,9 @@
  * @licence GNU GPL v2+
  * @author Daniel Kinzler
  */
+
+namespace MediaWiki\src\DAO;
+
 abstract class DBAccessBase implements IDBAccessObject {
 	/**
 	 * @var string|bool $wiki The target wiki's name. This must be an ID
@@ -38,7 +41,7 @@ abstract class DBAccessBase implements IDBAccessObject {
 	 * @param string|bool $wiki The target wiki's name. This must be an ID
 	 * that LBFactory can understand.
 	 */
-	public function __construct( $wiki = false ) {
+	public function DBAccessBase($wiki = false) {
 		$this->wiki = $wiki;
 	}
 
@@ -55,10 +58,10 @@ abstract class DBAccessBase implements IDBAccessObject {
 	 *
 	 * @return DatabaseBase
 	 */
-	protected function getConnection( $id, $groups = array() ) {
-		$loadBalancer = wfGetLB( $this->wiki );
+	protected function getConnection($id, $groups = []) {
+		$loadBalancer = wfGetLB($this->wiki);
 
-		return $loadBalancer->getConnection( $id, $groups, $this->wiki );
+		return $loadBalancer->getConnection($id, $groups, $this->wiki);
 	}
 
 	/**
@@ -70,10 +73,10 @@ abstract class DBAccessBase implements IDBAccessObject {
 	 *
 	 * @param DatabaseBase $db The database connection to release.
 	 */
-	protected function releaseConnection( DatabaseBase $db ) {
-		if ( $this->wiki !== false ) {
+	protected function releaseConnection(DatabaseBase $db) {
+		if ($this->wiki !== false) {
 			$loadBalancer = $this->getLoadBalancer();
-			$loadBalancer->reuseConnection( $db );
+			$loadBalancer->reuseConnection($db);
 		}
 	}
 
@@ -87,6 +90,6 @@ abstract class DBAccessBase implements IDBAccessObject {
 	 * @return LoadBalancer The database load balancer object
 	 */
 	public function getLoadBalancer() {
-		return wfGetLB( $this->wiki );
+		return wfGetLB($this->wiki);
 	}
 }

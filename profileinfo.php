@@ -42,31 +42,12 @@ header('Content-Type: text/html; charset=utf-8');
 	<title>Profiling data</title>
 	<style>
 		/* noc.wikimedia.org/base.css */
-
-		* {
-			margin: 0;
-			padding: 0;
-		}
-
-		body {
-			padding: 0.5em 1em;
-			background: #fff;
-			font: 14px/1.6 sans-serif;
-			color: #333;
-		}
-
-		p, ul, ol, table {
-			margin: 0.5em 0;
-		}
-
-		a {
-			color: #0645AD;
-			text-decoration: none;
-		}
-
-		a:hover {
-			text-decoration: underline;
-		}
+		
+		* { margin: 0; padding: 0; }
+		body { padding: 0.5em 1em; background: #fff; font: 14px/1.6 sans-serif; color: #333; }
+		p, ul, ol, table { margin: 0.5em 0; }
+		a { color: #0645ad; text-decoration: none; }
+		a:hover { text-decoration: underline; }
 
 		/*!
 		 * Bootstrap v2.1.1
@@ -78,64 +59,17 @@ header('Content-Type: text/html; charset=utf-8');
 		 * Designed and built with all the love in the world @twitter by @mdo and @fat.
 		 */
 
-		table {
-			max-width: 100%;
-			background-color: transparent;
-			border-collapse: collapse;
-			border-spacing: 0;
-		}
-
-		.table {
-			width: 100%;
-			margin-bottom: 20px;
-		}
-
-		.table th,
-		.table td {
-			padding: 0.1em;
-			text-align: left;
-			vertical-align: top;
-			border-top: 1px solid #ddd;
-		}
-
-		.table th {
-			font-weight: bold;
-		}
-
-		.table thead th {
-			vertical-align: bottom;
-		}
-
-		.table thead:first-child tr:first-child th,
-		.table thead:first-child tr:first-child td {
-			border-top: 0;
-		}
-
-		.table tbody + tbody {
-			border-top: 2px solid #ddd;
-		}
-
-		.table-condensed th,
-		.table-condensed td {
-			padding: 4px 5px;
-		}
-
-		.table-striped tbody tr:nth-child(odd) td,
-		.table-striped tbody tr:nth-child(odd) th {
-			background-color: #f9f9f9;
-		}
-
-		.table-hover tbody tr:hover td,
-		.table-hover tbody tr:hover th {
-			background-color: #f5f5f5;
-		}
-
-		hr {
-			margin: 20px 0;
-			border: 0;
-			border-top: 1px solid #eee;
-			border-bottom: 1px solid #fff;
-		}
+		table { max-width: 100%; background-color: transparent; border-collapse: collapse; border-spacing: 0; }
+		.table { width: 100%; margin-bottom: 20px; }
+		.table th, .table td { padding: 0.1em; text-align: left; vertical-align: top; border-top: 1px solid #ddd; }
+		.table th { font-weight: bold; }
+		.table thead th { vertical-align: bottom; }
+		.table thead:first-child tr:first-child th, .table thead:first-child tr:first-child td { border-top: 0; }
+		.table tbody + tbody { border-top: 2px solid #ddd; }
+		.table-condensed th, .table-condensed td { padding: 4px 5px; }
+		.table-striped tbody tr:nth-child(odd) td, .table-striped tbody tr:nth-child(odd) th { background-color: #f9f9f9; }
+		.table-hover tbody tr:hover td, .table-hover tbody tr:hover th { background-color: #f5f5f5; }
+		hr { margin: 20px 0; border: 0; border-top: 1px solid #eee; border-bottom: 1px solid #fff; }
 	</style>
 </head>
 <body>
@@ -149,11 +83,9 @@ if (!$wgEnableProfileInfo) {
 $dbr = wfGetDB(DB_SLAVE);
 
 if (!$dbr->tableExists('profiling')) {
-	echo '<p>No <code>profiling</code> table exists, so we can\'t show you anything.</p>'
-		. '<p>If you want to log profiling data, enable <code>$wgProfiler[\'output\'] = \'db\'</code>'
-		. ' in your StartProfiler.php and run <code>maintenance/update.php</code> to'
-		. ' create the profiling table.'
-		. '</body></html>';
+	echo '<p>No <code>profiling</code> table exists, so we can\'t show you anything.</p><p>If you want to log profiling data, enable '
+		. '<code>$wgProfiler[\'output\'] = \'db\'</code> in your StartProfiler.php and run <code>maintenance/update.php</code> to create '
+		. 'the profiling table.</p></body></html>';
 	exit(1);
 }
 
@@ -175,35 +107,33 @@ class ProfilePoint {
 
 	public static $totaltime, $totalmemory, $totalcount;
 
-	public function ProfilePoint($name, $count, $time, $memory) {
-		$this->name = $name;
-		$this->count = $count;
-		$this->time = $time;
-		$this->memory = $memory;
+	public function ProfilePoint($_name, $_count, $_time, $_memory) {
+		$this->name = $_name;
+		$this->count = $_count;
+		$this->time = $_time;
+		$this->memory = $_memory;
 		$this->children = [];
 	}
 
-	public function add_child($child) {
-		$this->children[] = $child;
+	public function add_child($_child) {
+		$this->children[] = $_child;
 	}
 
-	public function display($expand, $indent = 0.0) {
+	public function display($_expand, $_indent = 0.0) {
 		usort($this->children, 'compare_point');
-
 		$ex = isset($expand[$this->name()]);
-
 		$anchor = str_replace('"', '', $this->name());
 
 		if (!$ex) {
 			if (count($this->children)) {
-				$url = getEscapedProfileUrl(false, false, $expand + [$this->name() => true]);
+				$url = getEscapedProfileUrl(false, false, $_expand + [$this->name() => true]);
 				$extet = " <a id=\"{$anchor}\" href=\"{$url}#{$anchor}\">[+]</a>";
 			} else {
 				$extet = '';
 			}
 		} else {
 			$e = [];
-			foreach ( $expand as $name => $ep ) {
+			foreach ($_expand as $name => $ep) {
 				if ($name != $this->name() ) {
 					$e += [$name => $ep];
 				}
@@ -211,28 +141,25 @@ class ProfilePoint {
 			$url = getEscapedProfileUrl(false, false, $e);
 			$extet = " <a id=\"{$anchor}\" href=\"{$url}#{$anchor}\">[–]</a>";
 		}
-		?>
-	<tr>
-		<th>
-			<div style="margin-left: <?php echo (int)$indent; ?>em;">
-				<?php echo htmlspecialchars(str_replace(',', ', ', $this->name())) . $extet; ?>
-			</div>
-		</th>
-		<?php //@codingStandardsIgnoreStart ?>
-		<td class="mw-profileinfo-timep"><?php echo @wfPercent($this->time() / self::$totaltime * 100); ?></td>
-		<td class="mw-profileinfo-memoryp"><?php echo @wfPercent($this->memory() / self::$totalmemory * 100); ?></td>
-		<td class="mw-profileinfo-count"><?php echo $this->count(); ?></td>
-		<td class="mw-profileinfo-cpr"><?php echo round(sprintf('%.2f', $this->callsPerRequest()), 2); ?></td>
-		<td class="mw-profileinfo-tpc"><?php echo round(sprintf('%.2f', $this->timePerCall()), 2); ?></td>
-		<td class="mw-profileinfo-mpc"><?php echo round(sprintf('%.2f', $this->memoryPerCall() / 1024), 2); ?></td>
-		<td class="mw-profileinfo-tpr"><?php echo @round(sprintf('%.2f', $this->time() / self::$totalcount), 2); ?></td>
-		<td class="mw-profileinfo-mpr"><?php echo @round(sprintf('%.2f', $this->memory() / self::$totalcount / 1024), 2); ?></td>
-		<?php //@codingStandardsIgnoreEnd ?>
-	</tr>
-		<?php
+		
+		echo '<tr>';
+		echo '<th>';
+		echo '<div style="margin-left: ' . $_indent . 'em">';
+		echo htmlspecialchars(str_replace(',', ', ', $this->name())) . $extet;
+		echo '</div>';
+		echo '</th>';
+		echo '<td class="mw-profileinfo-timep">' . wfPercent($this->time() / self::$totaltime * 100) . '</td>';
+		echo '<td class="mw-profileinfo-memoryp">' . wfPercent($this->memory() / self::$totalmemory * 100) . '</td>';
+		echo '<td class="mw-profileinfo-count">' . $this->count() . '</td>';
+		echo '<td class="mw-profileinfo-cpr"' . round(sprintf('%.2f', $this->callsPerRequest()), 2) . '</td>';
+		echo '<td class="mw-profileinfo-tpc"' . round(sprintf('%.2f', $this->timePerCall()), 2) . '</td>';
+		echo '<td class="mw-profileinfo-mpc"' . round(sprintf('%.2f', $this->memoryPerCall() / 1024), 2) . '</td>';
+		echo '<td class="mw-profileinfo-tpr"' . round(sprintf('%.2f', $this->time() / self::$totalcount), 2) . '</td>';
+		echo '<td class="mw-profileinfo-mpr"' . round(sprintf('%.2f', $this->memory() / self::$totalcount / 1024), 2) . '</td>';
+		echo '</tr>';
 		if ($ex) {
 			foreach ($this->children as $child) {
-				$child->display($expand, $indent + 2);
+				$child->display($_expand, $_indent + 2);
 			}
 		}
 	}
@@ -288,36 +215,36 @@ class ProfilePoint {
 	}
 };
 
-function compare_point(profile_point $a, profile_point $b) {
+function compare_point(MediaWiki\ProfilePoint $_a, MediaWiki\ProfilePoint $_b) {
 	// @codingStandardsIgnoreStart
 	global $sort;
 	// @codingStandardsIgnoreEnd
+	
 	switch ($sort) {
 		case 'name':
-			return strcmp($a->name(), $b->name());
+			return strcmp($_a->name(), $_b->name());
 		case 'time':
-			return $a->time() > $b->time() ? -1 : 1;
+			return $_a->time() > $_b->time() ? -1 : 1;
 		case 'memory':
-			return $a->memory() > $b->memory() ? -1 : 1;
+			return $_a->memory() > $_b->memory() ? -1 : 1;
 		case 'count':
-			return $a->count() > $b->count() ? -1 : 1;
+			return $_a->count() > $_b->count() ? -1 : 1;
 		case 'time_per_call':
-			return $a->timePerCall() > $b->timePerCall() ? -1 : 1;
+			return $_a->timePerCall() > $_b->timePerCall() ? -1 : 1;
 		case 'memory_per_call':
-			return $a->memoryPerCall() > $b->memoryPerCall() ? -1 : 1;
+			return $_a->memoryPerCall() > $_b->memoryPerCall() ? -1 : 1;
 		case 'calls_per_req':
-			return $a->callsPerRequest() > $b->callsPerRequest() ? -1 : 1;
+			return $_a->callsPerRequest() > $_b->callsPerRequest() ? -1 : 1;
 		case 'time_per_req':
-			return $a->timePerRequest() > $b->timePerRequest() ? -1 : 1;
+			return $_a->timePerRequest() > $_b->timePerRequest() ? -1 : 1;
 		case 'memory_per_req':
-			return $a->memoryPerRequest() > $b->memoryPerRequest() ? -1 : 1;
+			return $_a->memoryPerRequest() > $_b->memoryPerRequest() ? -1 : 1;
 	}
 }
 
-$sorts = ['time', 'memory', 'count', 'calls_per_req', 'name',
-	'time_per_call', 'memory_per_call', 'time_per_req', 'memory_per_req'];
+$sorts = ['time', 'memory', 'count', 'calls_per_req', 'name', 'time_per_call', 'memory_per_call', 'time_per_req', 'memory_per_req'];
 $sort = 'time';
-if (isset( $_REQUEST['sort'] ) && in_array($_REQUEST['sort'], $sorts)) {
+if (isset($_REQUEST['sort'] ) && in_array($_REQUEST['sort'], $sorts)) {
 	$sort = $_REQUEST['sort'];
 }
 
@@ -355,9 +282,9 @@ if (isset($_REQUEST['filter'])) {
 	</thead>
 	<tbody>
 	<?php
-	profile_point::$totaltime = 0.0;
-	profile_point::$totalcount = 0;
-	profile_point::$totalmemory = 0.0;
+	MediaWiki\ProfilePoint::$totaltime = 0.0;
+	MediaWiki\ProfilePoint::$totalcount = 0;
+	MediaWiki\ProfilePoint::$totalmemory = 0.0;
 
 	function getEscapedProfileUrl($_filter = false, $_sort = false, $_expand = false) {
 		// @codingStandardsIgnoreStart
@@ -372,7 +299,7 @@ if (isset($_REQUEST['filter'])) {
 								wfArrayToCgi([
 									'filter' => $_filter ? $_filter : $filter,
 									'sort' => $_sort ? $_sort : $sort,
-									'expand' => implode( ',', array_keys( $_expand ) )
+									'expand' => implode(',', array_keys($_expand))
 								])
 							);
 	}
@@ -385,9 +312,9 @@ if (isset($_REQUEST['filter'])) {
 	foreach ($res as $o) {
 		$next = new MediaWiki\ProfilePoint($o->pf_name, $o->pf_count, $o->pf_time, $o->pf_memory);
 		if ($next->name() == '-total' || $next->name() == 'main()') {
-			profile_point::$totaltime = $next->time();
-			profile_point::$totalcount = $next->count();
-			ProfilePoint::$totalmemory = $next->memory();
+			MediaWiki\ProfilePoint::$totaltime = $next->time();
+			MediaWiki\ProfilePoint::$totalcount = $next->count();
+			MediaWiki\ProfilePoint::$totalmemory = $next->memory();
 		}
 		if ($last !== false) {
 			if (preg_match( '/^' . preg_quote($last->name(), '/' ) . '/', $next->name())) {
@@ -404,7 +331,7 @@ if (isset($_REQUEST['filter'])) {
 		}
 	}
 
-	$s = new ProfilePoint('SQL Queries', 0, $sqltotal, 0, 0);
+	$s = new MediaWiki\ProfilePoint('SQL Queries', 0, $sqltotal, 0, 0);
 	foreach ( $queries as $q ) {
 		$s->add_child( $q );
 	}
@@ -423,9 +350,9 @@ if (isset($_REQUEST['filter'])) {
 	</tbody>
 </table>
 <hr>
-<p>Total time: <code><?php printf('%5.02f', ProfilePoint::$totaltime); ?></code></p>
+<p>Total time: <code><?php printf('%5.02f', MediaWiki\ProfilePoint::$totaltime); ?></code></p>
 
-<p>Total memory: <code><?php printf('%5.02f', ProfilePoint::$totalmemory / 1024); ?></code></p>
+<p>Total memory: <code><?php printf('%5.02f', MediaWiki\ProfilePoint::$totalmemory / 1024); ?></code></p>
 <hr />
 </body>
 </html>

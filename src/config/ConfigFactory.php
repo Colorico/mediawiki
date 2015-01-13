@@ -32,14 +32,14 @@ class ConfigFactory {
 	 * Map of config name => callback
 	 * @var array
 	 */
-	protected $factoryFunctions = array();
+	protected $factoryFunctions = [];
 
 	/**
 	 * Config objects that have already been created
 	 * name => Config object
 	 * @var array
 	 */
-	protected $configs = array();
+	protected $configs = [];
 
 	/**
 	 * @var ConfigFactory
@@ -47,11 +47,12 @@ class ConfigFactory {
 	private static $self;
 
 	public static function getDefaultInstance() {
-		if ( !self::$self ) {
+		if (!self::$self) {
 			self::$self = new self;
 			global $wgConfigRegistry;
-			foreach ( $wgConfigRegistry as $name => $callback ) {
-				self::$self->register( $name, $callback );
+			
+			foreach ($wgConfigRegistry as $name => $callback) {
+				self::$self->register($name, $callback);
 			}
 		}
 		return self::$self;
@@ -64,8 +65,8 @@ class ConfigFactory {
 	 * @codeCoverageIgnore
 	 */
 	public static function destroyDefaultInstance() {
-		if ( !defined( 'MW_PHPUNIT_TEST' ) ) {
-			throw new MWException( __METHOD__ . ' was called outside of unit tests' );
+		if (!defined( 'MW_PHPUNIT_TEST')) {
+			throw new MWException(__METHOD__ . ' was called outside of unit tests');
 		}
 
 		self::$self = null;
@@ -78,11 +79,12 @@ class ConfigFactory {
 	 * @param callable $callback That takes this ConfigFactory as an argument
 	 * @throws InvalidArgumentException If an invalid callback is provided
 	 */
-	public function register( $name, $callback ) {
-		if ( !is_callable( $callback ) ) {
-			throw new InvalidArgumentException( 'Invalid callback provided' );
+	public function register($_name, $_callback) {
+		if (!is_callable($_callback)) {
+			throw new InvalidArgumentException('Invalid callback provided');
 		}
-		$this->factoryFunctions[$name] = $callback;
+		
+		$this->factoryFunctions[$_name] = $_callback;
 	}
 
 	/**
@@ -94,19 +96,19 @@ class ConfigFactory {
 	 * @throws UnexpectedValueException If the factory function returns a non-Config object
 	 * @return Config
 	 */
-	public function makeConfig( $name ) {
-		if ( !isset( $this->configs[$name] ) ) {
-			if ( !isset( $this->factoryFunctions[$name] ) ) {
-				throw new ConfigException( "No registered builder available for $name." );
+	public function makeConfig($_name) {
+		if (!isset($this->configs[$_name])) {
+			if (!isset($this->factoryFunctions[$_name])) {
+				throw new ConfigException("No registered builder available for $_name.");
 			}
-			$conf = call_user_func( $this->factoryFunctions[$name], $this );
-			if ( $conf instanceof Config ) {
-				$this->configs[$name] = $conf;
+			$conf = call_user_func($this->factoryFunctions[$_name], $this);
+			if ($conf instanceof Config) {
+				$this->configs[$_name] = $conf;
 			} else {
-				throw new UnexpectedValueException( "The builder for $name returned a non-Config object." );
+				throw new UnexpectedValueException("The builder for $_name returned a non-Config object.");
 			}
 		}
 
-		return $this->configs[$name];
+		return $this->configs[$_name];
 	}
 }

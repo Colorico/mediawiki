@@ -46,6 +46,9 @@
  *
  * @since 1.20
  */
+
+namespace MediaWiki\src\DAO;
+
 interface IDBAccessObject {
 	// Constants for object loading bitfield flags (higher => higher QoS)
 	const READ_LATEST = 1; // read from the master

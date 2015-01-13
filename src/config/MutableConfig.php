@@ -34,5 +34,6 @@ interface MutableConfig {
 	 * @param mixed $value Value to set
 	 * @throws ConfigException
 	 */
-	public function set( $name, $value );
+	public function set($_name, $_value);
+	
 }

@@ -40,29 +40,29 @@ class MultiConfig implements Config {
 	/**
 	 * @param Config[] $configs
 	 */
-	public function __construct( array $configs ) {
-		$this->configs = $configs;
+	public function MultiConfig(array $_configs) {
+		$this->configs = $_configs;
 	}
 
 	/**
 	 * @see Config::get
 	 */
-	public function get( $name ) {
-		foreach ( $this->configs as $config ) {
-			if ( $config->has( $name ) ) {
-				return $config->get( $name );
+	public function get($_name) {
+		foreach ($this->configs as $config) {
+			if ($config->has($_name)) {
+				return $config->get($_name);
 			}
 		}
 
-		throw new ConfigException( __METHOD__ . ": undefined option: '$name'" );
+		throw new ConfigException(__METHOD__ . ": undefined option: '$_name'");
 	}
 
 	/**
 	 * @see Config::has
 	 */
-	public function has( $name ) {
-		foreach ( $this->configs as $config ) {
-			if ( $config->has( $name ) ) {
+	public function has($_name) {
+		foreach ($this->configs as $config) {
+			if ($config->has($_name)) {
 				return true;
 			}
 		}

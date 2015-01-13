@@ -36,7 +36,7 @@ namespace MediaWiki;
 define('MW_API', true);
 
 // Bail if PHP is too low
-if (!function_exists( 'version_compare' ) || version_compare( PHP_VERSION, '5.3.3' ) < 0) {
+if (!function_exists('version_compare') || version_compare(PHP_VERSION, '5.3.3') < 0) {
 	// We need to use dirname( __FILE__ ) here cause __DIR__ is PHP5.3+
 	require dirname(__FILE__) . '/src/PHPVersionError.php';
 	wfPHPVersionError('api.php');
@@ -54,8 +54,7 @@ if (!$wgRequest->checkUrlExtension()) {
 // Verify that the API has not been disabled
 if (!$wgEnableAPI) {
 	header($_SERVER['SERVER_PROTOCOL'] . ' 500 MediaWiki configuration Error', true, 500);
-	echo 'MediaWiki API is not enabled for this site. Add the following line to your LocalSettings.php'
-		. '<pre><b>$wgEnableAPI=true;</b></pre>';
+	echo 'MediaWiki API is not enabled for this site. Add the following line to your LocalSettings.php<pre><b>$wgEnableAPI=true;</b></pre>';
 	die(1);
 }
 
@@ -100,12 +99,7 @@ wfLogProfilingData();
 
 // Log the request
 if ($wgAPIRequestLog) {
-	$items = [
-		wfTimestamp(TS_MW),
-		$endtime - $starttime,
-		$wgRequest->getIP(),
-		$wgRequest->getHeader('User-agent')
-	];
+	$items = [wfTimestamp(TS_MW), $endtime - $starttime, $wgRequest->getIP(), $wgRequest->getHeader('User-agent')];
 	$items[] = $wgRequest->wasPosted() ? 'POST' : 'GET';
 	if ($processor) {
 		try {
@@ -114,6 +108,7 @@ if ($wgAPIRequestLog) {
 		} catch (Exception $ex) {
 			$module = null;
 		}
+		
 		if (!$module || $module->mustBePosted()) {
 			$items[] = "action=" . $wgRequest->getVal('action');
 		} else {
@@ -122,6 +117,7 @@ if ($wgAPIRequestLog) {
 	} else {
 		$items[] = "failed in ApiBeforeMain";
 	}
+	
 	MWLoggerLegacyLogger::emit(implode(',', $items) . "\n", $wgAPIRequestLog);
 	wfDebug("Logged API request to $wgAPIRequestLog\n");
 }

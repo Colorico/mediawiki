@@ -42,8 +42,8 @@ $response->header('Cache-control: max-age=600');
 
 print '<?xml version="1.0"?>';
 print Xml::openElement('OpenSearchDescription',
-			[	'xmlns' => 'http://a9.com/-/spec/opensearch/1.1/', 'xmlns:moz' => 'http://www.mozilla.org/2006/browser/search/']
-		);
+	['xmlns' => 'http://a9.com/-/spec/opensearch/1.1/', 'xmlns:moz' => 'http://www.mozilla.org/2006/browser/search/']
+);
 
 // The spec says the ShortName must be no longer than 16 characters,
 // but 16 is *realllly* short. In practice, browsers don't appear to care
@@ -61,22 +61,17 @@ print Xml::element('Description', null, $fullName);
 
 // By default we'll use the site favicon.
 // Double-check if IE supports this properly?
-print Xml::element('Image',
-		['height' => 16, 'width' => 16, 'type' => 'image/x-icon'],
-		wfExpandUrl($wgFavicon, PROTO_CURRENT)
-	);
-
+print Xml::element('Image', ['height' => 16, 'width' => 16, 'type' => 'image/x-icon'], wfExpandUrl($wgFavicon, PROTO_CURRENT));
 $urls = [];
 
 // General search template. Given an input term, this should bring up
 // search results or a specific found page.
 // At least Firefox and IE 7 support this.
 $searchPage = SpecialPage::getTitleFor('Search');
-$urls[] = [
-			'type' => 'text/html',
-			'method' => 'get',
-			'template' => $searchPage->getCanonicalURL('search={searchTerms}')
-		];
+$urls[] = ['type' => 'text/html',
+		   'method' => 'get',
+		   'template' => $searchPage->getCanonicalURL('search={searchTerms}')
+		  ];
 
 foreach ($wgOpenSearchTemplates as $type => $template) {
 	if (!$template && $wgEnableAPI) {
@@ -84,11 +79,7 @@ foreach ($wgOpenSearchTemplates as $type => $template) {
 	}
 
 	if ($template) {
-		$urls[] = [
-			'type' => $type,
-			'method' => 'get',
-			'template' => $template,
-		];
+		$urls[] = ['type' => $type, 'method' => 'get', 'template' => $template, ];
 	}
 }
 

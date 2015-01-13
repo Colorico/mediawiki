@@ -44,32 +44,32 @@ class HashConfig implements Config, MutableConfig {
 	/**
 	 * @param array $settings Any current settings to pre-load
 	 */
-	public function __construct( array $settings = array() ) {
-		$this->settings = $settings;
+	public function HashConfig(array $_settings = []) {
+		$this->settings = $_settings;
 	}
 
 	/**
 	 * @see Config::get
 	 */
-	public function get( $name ) {
-		if ( !$this->has( $name ) ) {
-			throw new ConfigException( __METHOD__ . ": undefined option: '$name'" );
+	public function get($_name) {
+		if (!$this->has($_name)) {
+			throw new ConfigException(__METHOD__ . ": undefined option: '$_name'");
 		}
 
-		return $this->settings[$name];
+		return $this->settings[$_name];
 	}
 
 	/**
 	 * @see Config::has
 	 */
-	public function has( $name ) {
-		return array_key_exists( $name, $this->settings );
+	public function has($_name) {
+		return array_key_exists($_name, $this->settings);
 	}
 
 	/**
 	 * @see Config::set
 	 */
-	public function set( $name, $value ) {
-		$this->settings[$name] = $value;
+	public function set($_name, $_value) {
+		$this->settings[$_name] = $_value;
 	}
 }
