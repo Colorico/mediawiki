@@ -28,6 +28,9 @@
  *
  * @todo Move some stuff from CategoryPage.php to here, and use that.
  */
+ 
+namespace MediaWiki\src;
+
 class Category {
 	/** Name of the category, normalized to DB-key form */
 	private $mName = null;
@@ -40,8 +43,7 @@ class Category {
 	/** Counts of membership (cat_pages, cat_subcats, cat_files) */
 	private $mPages = null, $mSubcats = null, $mFiles = null;
 
-	private function __construct() {
-	}
+	private function Category() { }
 
 	/**
 	 * Set up all member variables using a database query.
@@ -50,27 +52,22 @@ class Category {
 	 */
 	protected function initialize() {
 		if ( $this->mName === null && $this->mID === null ) {
-			throw new MWException( __METHOD__ . ' has both names and IDs null' );
-		} elseif ( $this->mID === null ) {
-			$where = array( 'cat_title' => $this->mName );
-		} elseif ( $this->mName === null ) {
-			$where = array( 'cat_id' => $this->mID );
+			throw new MWException(__METHOD__ . ' has both names and IDs null');
+		} elseif ($this->mID === null) {
+			$where = ['cat_title' => $this->mName];
+		} elseif ($this->mName === null) {
+			$where = ['cat_id' => $this->mID];
 		} else {
 			# Already initialized
 			return true;
 		}
 
-		$dbr = wfGetDB( DB_SLAVE );
-		$row = $dbr->selectRow(
-			'category',
-			array( 'cat_id', 'cat_title', 'cat_pages', 'cat_subcats', 'cat_files' ),
-			$where,
-			__METHOD__
-		);
+		$dbr = wfGetDB(DB_SLAVE);
+		$row = $dbr->selectRow('category', ['cat_id', 'cat_title', 'cat_pages', 'cat_subcats', 'cat_files'], $where, __METHOD__);
 
-		if ( !$row ) {
+		if (!$row) {
 			# Okay, there were no contents.  Nothing to initialize.
-			if ( $this->mTitle ) {
+			if ($this->mTitle) {
 				# If there is a title object but no record in the category table,
 				# treat this as an empty category.
 				$this->mID = false;
@@ -94,7 +91,7 @@ class Category {
 		# (bug 13683) If the count is negative, then 1) it's obviously wrong
 		# and should not be kept, and 2) we *probably* don't have to scan many
 		# rows to obtain the correct figure, so let's risk a one-time recount.
-		if ( $this->mPages < 0 || $this->mSubcats < 0 || $this->mFiles < 0 ) {
+		if ($this->mPages < 0 || $this->mSubcats < 0 || $this->mFiles < 0) {
 			$this->refreshCounts();
 		}
 
@@ -110,9 +107,9 @@ class Category {
 	 */
 	public static function newFromName( $name ) {
 		$cat = new self();
-		$title = Title::makeTitleSafe( NS_CATEGORY, $name );
+		$title = Title::makeTitleSafe(NS_CATEGORY, $name);
 
-		if ( !is_object( $title ) ) {
+		if (!is_object($title)) {
 			return false;
 		}
 
@@ -128,7 +125,7 @@ class Category {
 	 * @param Title $title Title for the category page
 	 * @return Category|bool On a totally invalid name
 	 */
-	public static function newFromTitle( $title ) {
+	public static function newFromTitle($title) {
 		$cat = new self();
 
 		$cat->mTitle = $title;
@@ -143,9 +140,9 @@ class Category {
 	 * @param int $id A category id
 	 * @return Category
 	 */
-	public static function newFromID( $id ) {
+	public static function newFromID($id) {
 		$cat = new self();
-		$cat->mID = intval( $id );
+		$cat->mID = intval($id);
 		return $cat;
 	}
 
@@ -161,7 +158,7 @@ class Category {
 	 *   to re-create a title object later.
 	 * @return Category
 	 */
-	public static function newFromRow( $row, $title = null ) {
+	public static function newFromRow($row, $title = null) {
 		$cat = new self();
 		$cat->mTitle = $title;
 
@@ -170,8 +167,8 @@ class Category {
 		#       was ever added to the category. This case should be treated link an empty
 		#       category, if possible.
 
-		if ( $row->cat_title === null ) {
-			if ( $title === null ) {
+		if ($row->cat_title === null) {
+			if ($title === null) {
 				# the name is probably somewhere in the row, for example as page_title,
 				# but we can't know that here...
 				return false;
@@ -199,50 +196,50 @@ class Category {
 	 * @return mixed DB key name, or false on failure
 	 */
 	public function getName() {
-		return $this->getX( 'mName' );
+		return $this->getX('mName');
 	}
 
 	/**
 	 * @return mixed Category ID, or false on failure
 	 */
 	public function getID() {
-		return $this->getX( 'mID' );
+		return $this->getX('mID');
 	}
 
 	/**
 	 * @return mixed Total number of member pages, or false on failure
 	 */
 	public function getPageCount() {
-		return $this->getX( 'mPages' );
+		return $this->getX('mPages');
 	}
 
 	/**
 	 * @return mixed Number of subcategories, or false on failure
 	 */
 	public function getSubcatCount() {
-		return $this->getX( 'mSubcats' );
+		return $this->getX('mSubcats');
 	}
 
 	/**
 	 * @return mixed Number of member files, or false on failure
 	 */
 	public function getFileCount() {
-		return $this->getX( 'mFiles' );
+		return $this->getX('mFiles');
 	}
 
 	/**
 	 * @return Title|bool Title for this category, or false on failure.
 	 */
 	public function getTitle() {
-		if ( $this->mTitle ) {
+		if ($this->mTitle) {
 			return $this->mTitle;
 		}
 
-		if ( !$this->initialize() ) {
+		if (!$this->initialize()) {
 			return false;
 		}
 
-		$this->mTitle = Title::makeTitleSafe( NS_CATEGORY, $this->mName );
+		$this->mTitle = Title::makeTitleSafe(NS_CATEGORY, $this->mName);
 		return $this->mTitle;
 	}
 
@@ -253,29 +250,26 @@ class Category {
 	 * @param string $offset
 	 * @return TitleArray TitleArray object for category members.
 	 */
-	public function getMembers( $limit = false, $offset = '' ) {
+	public function getMembers($limit = false, $offset = '') {
 
-		$dbr = wfGetDB( DB_SLAVE );
+		$dbr = wfGetDB(DB_SLAVE);
 
-		$conds = array( 'cl_to' => $this->getName(), 'cl_from = page_id' );
-		$options = array( 'ORDER BY' => 'cl_sortkey' );
+		$conds = ['cl_to' => $this->getName(), 'cl_from = page_id'];
+		$options = ['ORDER BY' => 'cl_sortkey'];
 
-		if ( $limit ) {
+		if ($limit) {
 			$options['LIMIT'] = $limit;
 		}
 
-		if ( $offset !== '' ) {
-			$conds[] = 'cl_sortkey > ' . $dbr->addQuotes( $offset );
+		if ($offset !== '') {
+			$conds[] = 'cl_sortkey > ' . $dbr->addQuotes($offset);
 		}
 
 		$result = TitleArray::newFromResult(
 			$dbr->select(
-				array( 'page', 'categorylinks' ),
-				array( 'page_id', 'page_namespace', 'page_title', 'page_len',
-					'page_is_redirect', 'page_latest' ),
-				$conds,
-				__METHOD__,
-				$options
+				['page', 'categorylinks'], 
+				['page_id', 'page_namespace', 'page_title', 'page_len', 'page_is_redirect', 'page_latest'],
+				$conds, __METHOD__, $options
 			)
 		);
 
@@ -287,8 +281,8 @@ class Category {
 	 * @param string $key
 	 * @return bool
 	 */
-	private function getX( $key ) {
-		if ( !$this->initialize() ) {
+	private function getX($key) {
+		if (!$this->initialize()) {
 			return false;
 		}
 		return $this->{$key};
@@ -300,59 +294,42 @@ class Category {
 	 * @return bool True on success, false on failure
 	 */
 	public function refreshCounts() {
-		if ( wfReadOnly() ) {
+		if (wfReadOnly()) {
 			return false;
 		}
 
 		# Note, we must use names for this, since categorylinks does.
-		if ( $this->mName === null ) {
-			if ( !$this->initialize() ) {
+		if ($this->mName === null) {
+			if (!$this->initialize()) {
 				return false;
 			}
 		}
 
-		$dbw = wfGetDB( DB_MASTER );
-		$dbw->startAtomic( __METHOD__ );
+		$dbw = wfGetDB(DB_MASTER);
+		$dbw->startAtomic(__METHOD__);
 
 		# Insert the row if it doesn't exist yet (e.g., this is being run via
 		# update.php from a pre-1.16 schema).  TODO: This will cause lots and
 		# lots of gaps on some non-MySQL DBMSes if you run populateCategory.php
 		# repeatedly.  Plus it's an extra query that's unneeded almost all the
 		# time.  This should be rewritten somehow, probably.
-		$seqVal = $dbw->nextSequenceValue( 'category_cat_id_seq' );
-		$dbw->insert(
-			'category',
-			array(
-				'cat_id' => $seqVal,
-				'cat_title' => $this->mName
-			),
-			__METHOD__,
-			'IGNORE'
-		);
+		$seqVal = $dbw->nextSequenceValue('category_cat_id_seq');
+		$dbw->insert('category', ['cat_id' => $seqVal, 'cat_title' => $this->mName], __METHOD__, 'IGNORE');
 
-		$cond1 = $dbw->conditional( array( 'page_namespace' => NS_CATEGORY ), 1, 'NULL' );
-		$cond2 = $dbw->conditional( array( 'page_namespace' => NS_FILE ), 1, 'NULL' );
+		$cond1 = $dbw->conditional(['page_namespace' => NS_CATEGOR], 1, 'NULL');
+		$cond2 = $dbw->conditional(['page_namespace' => NS_FILE], 1, 'NULL');
 		$result = $dbw->selectRow(
-			array( 'categorylinks', 'page' ),
-			array( 'pages' => 'COUNT(*)',
-				'subcats' => "COUNT($cond1)",
-				'files' => "COUNT($cond2)"
-			),
-			array( 'cl_to' => $this->mName, 'page_id = cl_from' ),
-			__METHOD__,
-			array( 'LOCK IN SHARE MODE' )
+			['categorylinks', 'page'],
+			['pages' => 'COUNT(*)', 'subcats' => "COUNT($cond1)", 'files' => "COUNT($cond2)"],
+			['cl_to' => $this->mName, 'page_id = cl_from'],
+			__METHOD__, ['LOCK IN SHARE MODE']
 		);
 		$ret = $dbw->update(
 			'category',
-			array(
-				'cat_pages' => $result->pages,
-				'cat_subcats' => $result->subcats,
-				'cat_files' => $result->files
-			),
-			array( 'cat_title' => $this->mName ),
-			__METHOD__
+			['cat_pages' => $result->pages, 'cat_subcats' => $result->subcats, 'cat_files' => $result->files],
+			['cat_title' => $this->mName], __METHOD__
 		);
-		$dbw->endAtomic( __METHOD__ );
+		$dbw->endAtomic(__METHOD__);
 
 		# Now we should update our local counts.
 		$this->mPages = $result->pages;

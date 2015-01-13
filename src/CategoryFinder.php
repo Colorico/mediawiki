@@ -44,22 +44,22 @@
  */
 class CategoryFinder {
 	/** @var int[] The original article IDs passed to the seed function */
-	protected $articles = array();
+	protected $articles = [];
 
 	/** @var array Array of DBKEY category names for categories that don't have a page */
-	protected $deadend = array();
+	protected $deadend = [];
 
 	/** @var array Array of [ID => array()] */
-	protected $parents = array();
+	protected $parents = [];
 
 	/** @var array Array of article/category IDs */
-	protected $next = array();
+	protected $next = [];
 
 	/** @var array Array of DBKEY category names */
-	protected $targets = array();
+	protected $targets = [];
 
 	/** @var array */
-	protected $name2id = array();
+	protected $name2id = [];
 
 	/** @var string "AND" or "OR" */
 	protected $mode;
@@ -74,16 +74,16 @@ class CategoryFinder {
 	 * @param string $mode FIXME, default 'AND'.
 	 * @todo FIXME: $categories/$mode
 	 */
-	public function seed( $articleIds, $categories, $mode = 'AND' ) {
+	public function seed($articleIds, $categories, $mode = 'AND') {
 		$this->articles = $articleIds;
 		$this->next = $articleIds;
 		$this->mode = $mode;
 
 		# Set the list of target categories; convert them to DBKEY form first
-		$this->targets = array();
-		foreach ( $categories as $c ) {
-			$ct = Title::makeTitleSafe( NS_CATEGORY, $c );
-			if ( $ct ) {
+		$this->targets = [];
+		foreach ($categories as $c) {
+			$ct = Title::makeTitleSafe(NS_CATEGORY, $c);
+			if ($ct) {
 				$c = $ct->getDBkey();
 				$this->targets[$c] = $c;
 			}
@@ -96,17 +96,17 @@ class CategoryFinder {
 	 * @return array Array of page_ids (those given to seed() that match the conditions)
 	 */
 	public function run() {
-		$this->dbr = wfGetDB( DB_SLAVE );
-		while ( count( $this->next ) > 0 ) {
+		$this->dbr = wfGetDB(DB_SLAVE);
+		while (count($this->next) > 0 ) {
 			$this->scanNextLayer();
 		}
 
 		# Now check if this applies to the individual articles
-		$ret = array();
+		$ret = [];
 
-		foreach ( $this->articles as $article ) {
+		foreach ($this->articles as $article) {
 			$conds = $this->targets;
-			if ( $this->check( $article, $conds ) ) {
+			if ($this->check($article, $conds)) {
 				# Matches the conditions
 				$ret[] = $article;
 			}
@@ -129,38 +129,38 @@ class CategoryFinder {
 	 * @param array $path Used to check for recursion loops
 	 * @return bool Does this match the conditions?
 	 */
-	private function check( $id, &$conds, $path = array() ) {
+	private function check($id, &$conds, $path = [] {
 		// Check for loops and stop!
-		if ( in_array( $id, $path ) ) {
+		if (in_array($id, $path)) {
 			return false;
 		}
 
 		$path[] = $id;
 
 		# Shortcut (runtime paranoia): No conditions=all matched
-		if ( count( $conds ) == 0 ) {
+		if (count($conds) == 0) {
 			return true;
 		}
 
-		if ( !isset( $this->parents[$id] ) ) {
+		if (!isset($this->parents[$id])) {
 			return false;
 		}
 
 		# iterate through the parents
-		foreach ( $this->parents[$id] as $p ) {
+		foreach ($this->parents[$id] as $p) {
 			$pname = $p->cl_to;
 
 			# Is this a condition?
-			if ( isset( $conds[$pname] ) ) {
+			if (isset($conds[$pname])) {
 				# This key is in the category list!
-				if ( $this->mode == 'OR' ) {
+				if ($this->mode == 'OR') {
 					# One found, that's enough!
-					$conds = array();
+					$conds = [];
 					return true;
 				} else {
 					# Assuming "AND" as default
-					unset( $conds[$pname] );
-					if ( count( $conds ) == 0 ) {
+					unset($conds[$pname]);
+					if (count($conds) == 0) {
 						# All conditions met, done
 						return true;
 					}
@@ -168,12 +168,12 @@ class CategoryFinder {
 			}
 
 			# Not done yet, try sub-parents
-			if ( !isset( $this->name2id[$pname] ) ) {
+			if (!isset($this->name2id[$pname])) {
 				# No sub-parent
 				continue;
 			}
-			$done = $this->check( $this->name2id[$pname], $conds, $path );
-			if ( $done || count( $conds ) == 0 ) {
+			$done = $this->check($this->name2id[$pname], $conds, $path);
+			if ($done || count($conds) == 0) {
 				# Subparents have done it!
 				return true;
 			}
@@ -187,11 +187,11 @@ class CategoryFinder {
 	private function scanNextLayer() {
 
 		# Find all parents of the article currently in $this->next
-		$layer = array();
+		$layer = [];
 		$res = $this->dbr->select(
 			/* FROM   */ 'categorylinks',
 			/* SELECT */ '*',
-			/* WHERE  */ array( 'cl_from' => $this->next ),
+			/* WHERE  */ ['cl_from' => $this->next],
 			__METHOD__ . '-1'
 		);
 		foreach ( $res as $o ) {
@@ -199,16 +199,16 @@ class CategoryFinder {
 
 			# Update parent tree
 			if ( !isset( $this->parents[$o->cl_from] ) ) {
-				$this->parents[$o->cl_from] = array();
+				$this->parents[$o->cl_from] = [];
 			}
 			$this->parents[$o->cl_from][$k] = $o;
 
 			# Ignore those we already have
-			if ( in_array( $k, $this->deadend ) ) {
+			if (in_array($k, $this->deadend)) {
 				continue;
 			}
 
-			if ( isset( $this->name2id[$k] ) ) {
+			if (isset($this->name2id[$k])) {
 				continue;
 			}
 
@@ -216,14 +216,14 @@ class CategoryFinder {
 			$layer[$k] = $k;
 		}
 
-		$this->next = array();
+		$this->next = [];
 
 		# Find the IDs of all category pages in $layer, if they exist
 		if ( count( $layer ) > 0 ) {
 			$res = $this->dbr->select(
 				/* FROM   */ 'page',
-				/* SELECT */ array( 'page_id', 'page_title' ),
-				/* WHERE  */ array( 'page_namespace' => NS_CATEGORY, 'page_title' => $layer ),
+				/* SELECT */ ['page_id', 'page_title'],
+				/* WHERE  */ ['page_namespace' => NS_CATEGORY, 'page_title' => $layer],
 				__METHOD__ . '-2'
 			);
 			foreach ( $res as $o ) {
